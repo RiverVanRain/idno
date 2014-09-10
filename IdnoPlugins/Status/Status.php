@@ -5,7 +5,7 @@
         class Status extends \Idno\Common\Entity {
 
             function getTitle() {
-                return strip_tags($this->body);
+                return $this->getShortDescription();
             }
 
             function getDescription() {
@@ -48,9 +48,18 @@
                 }
                 $body = \Idno\Core\site()->currentPage()->getInput('body');
                 $inreplyto = \Idno\Core\site()->currentPage()->getInput('inreplyto');
+                $tags = \Idno\Core\site()->currentPage()->getInput('tags');
+
+                if ($time = \Idno\Core\site()->currentPage()->getInput('created')) {
+                    if ($time = strtotime($time)) {
+                        $this->created = $time;
+                    }
+                }
+
                 if (!empty($body)) {
                     $this->body = $body;
                     $this->inreplyto = $inreplyto;
+                    $this->tags = $tags;
                     if (!empty($inreplyto)) {
                         if (is_array($inreplyto)) {
                             foreach($inreplyto as $inreplytourl) {
@@ -66,7 +75,6 @@
                             $this->addToFeed();
                         } // Add it to the Activity Streams feed
                         \Idno\Core\Webmention::pingMentions($this->getURL(), \Idno\Core\site()->template()->parseURLs($this->getDescription()));
-                        \Idno\Core\site()->session()->addMessage('Your status update was successfully saved.');
                         return true;
                     }
                 } else {

@@ -1,3 +1,4 @@
+<?=$this->draw('entity/edit/header');?>
 <script>
 
     function replenish(latitude, longitude) {
@@ -68,28 +69,40 @@
 
     <div class="row">
 
-        <div class="span10 offset1">
+        <div class="span8 offset2 edit-pane">
+			<h4>
+				                <?php
 
+                    if (empty($vars['object']->_id)) {
+                        ?>New Check-in<?php
+                    } else {
+                        ?>Edit Check-in<?php
+                    }
+                  ?>
+			</h4>
             <div id="geoplaceholder">
                 <p>
-                    <span class="label">Loading location ...</span>
+                    <span class="label">Hold tight ... searching for your location.</span>
                 </p>
             </div>
-            <div id="geofields" style="display:none">
-                <div class="well">
+            <div id="geofields" class="map" style="display:none">
+                <div class="geolocation">
                     <p>
                         <label>
-                            Where are you?<br/>
-                            <input type="text" name="placename" id="placename" class="span9"/>
+                            Location<br/>
+                            <input type="text" name="placename" id="placename" class="span8" placeholder="Where are you?"/>
                             <input type="hidden" name="lat" id="lat"/>
                             <input type="hidden" name="long" id="long"/>
                         </label>
                     </p>
 
                     <p>
-                        Address (edit this if we got it wrong!)<br/>
-                        <input type="text" name="user_address" id="user_address" class="span9"/>
+                        <label>Address<br/>
+                        <small>You can edit the address if it's wrong.</small>
+                        <input type="text" name="user_address" id="user_address" class="span8"/>
                         <input type="hidden" name="address" id="address"/>
+                       
+                        </label>
                     </p>
 
                     <div id="checkinMap" style="height: 250px" ></div>
@@ -97,15 +110,26 @@
             </div>
             <p>
                 <label>
-                    What are you up to?<br/>
-                    <input type="text" name="body" id="body" value="<?= htmlspecialchars($vars['object']->body) ?>"
-                           class="span9"/>
+                    Comments<br/>
+                    <input type="text" name="body" id="body" placeholder="What are you up to?" value="<?= htmlspecialchars($vars['object']->body) ?>"
+                           class="span8 mentionable"/>
                 </label>
+                <label>
+                    Tags<br/>
+                        <input type="text" name="tags" id="tags" placeholder="Add some #tags"
+                               value="<?= htmlspecialchars($vars['object']->tags) ?>" class="span8"/>
+                </label>
+
+            </p>
+            <?php if (empty($vars['object']->_id)) echo $this->drawSyndication('place'); ?>
+            <p class="button-bar ">
+               <input type="button" class="btn btn-cancel" value="Cancel" onclick="hideContentCreateForm();"/>
                 <?= \Idno\Core\site()->actions()->signForm('/checkin/edit') ?>
-                <input type="submit" class="btn btn-primary" value="Save"/>
-                <input type="button" class="btn" value="Cancel" onclick="hideContentCreateForm();"/>
+                <input type="submit" class="btn btn-primary" value="<?php if (empty($vars['object']->_id)) { ?>Check in<?php } else { ?>Save<?php } ?>"/>
+                <?= $this->draw('content/access'); ?>
             </p>
         </div>
 
     </div>
 </form>
+<?=$this->draw('entity/edit/footer');?>

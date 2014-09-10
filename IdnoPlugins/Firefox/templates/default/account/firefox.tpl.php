@@ -3,17 +3,17 @@
     var data = {
 
         "name": "<?=htmlspecialchars(\Idno\Core\site()->config()->title)?>",
-        "iconURL": "<?=\Idno\Core\site()->config()->url?>IdnoPlugins/Firefox/icon16.png",
-        "icon32URL": "<?=\Idno\Core\site()->config()->url?>IdnoPlugins/Firefox/icon32.png",
-        "icon64URL": "<?=\Idno\Core\site()->config()->url?>IdnoPlugins/Firefox/icon64.png",
+        "iconURL": "<?=\Idno\Core\site()->config()->getURL()?>gfx/logos/logo_k_16.png",
+        "icon32URL": "<?=\Idno\Core\site()->config()->getURL()?>gfx/logos/logo_k_32.png",
+        "icon64URL": "<?=\Idno\Core\site()->config()->getURL()?>gfx/logos/logo_k_64.png",
 
         "workerURL": "<?=\Idno\Core\site()->config()->url?>IdnoPlugins/Firefox/worker.js",
         //"sidebarURL": "<?=\Idno\Core\site()->config()->url?>firefox/sidebar",
-        "shareURL": "<?=\Idno\Core\site()->config()->url?>firefox/share?share_url=%{url}&share_title=%{title}",
+        "shareURL": "<?=\Idno\Core\site()->config()->url?>share?share_url=%{url}&share_title=%{title}&via=ff_social",
 
-        "description": "Powered by idno",
-        "author": "Ben Werdmuller",
-        "homepageURL": "http://idno.co/",
+        "description": "Powered by Known",
+        "author": "Known, Inc",
+        "homepageURL": "http://withknown.com/",
 
         "version": "0.1"
     }
@@ -29,7 +29,7 @@
 <div class="row">
 
     <div class="span10 offset1">
-        <h3>Firefox</h3>
+        <h1>Firefox</h1>
         <?= $this->draw('account/menu') ?>
     </div>
 </div>
@@ -44,7 +44,7 @@
         </p>
 
         <p>
-            If you have <strong>a recent version of Firefox Nightly</strong> or above, click the button below to
+            If you have <strong>Firefox 21</strong> or above, click the button below to
             set up your browser:
         </p>
 

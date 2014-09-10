@@ -5,6 +5,7 @@
      */
 
     namespace Idno\Pages\Entity {
+        use Idno\Common\Entity;
 
         /**
          * Default class to serve the homepage
@@ -18,17 +19,34 @@
             {
                 if (!empty($this->arguments[0])) {
                     $object = \Idno\Common\Entity::getByID($this->arguments[0]);
+                    if (empty($object)) {
+                        $object = \Idno\Common\Entity::getBySlug($this->arguments[0]);
+                    }
                 }
                 if (empty($object)) {
                     $this->goneContent();
                 }
 
-                $this->setPermalink();  // This is a permalink
+                // From here, we know the object is set
+
+                // Check that we can see it
+                if (!$object->canRead()) {
+                    $this->deniedContent();
+                }
+
+                // Just forward to the user's page
+                if ($object instanceof \Idno\Entities\User) {
+                    $this->forward($object->getURL());
+                }
+
+                $this->setOwner($object->getOwner());
+                $this->setPermalink(); // This is a permalink
+                $this->setLastModifiedHeader($object->updated); // Say when this was last modified
                 $t = \Idno\Core\site()->template();
                 $t->__(array(
 
-                    'title' => $object->getTitle(),
-                    'body' => $t->__(array('object' => $object->getRelatedFeedItems()))->draw('entity/shell'),
+                    'title'       => $object->getTitle(),
+                    'body'        => $t->__(array('object' => $object->getRelatedFeedItems()))->draw('entity/shell'),
                     'description' => $object->getShortDescription()
 
                 ))->drawPage();
@@ -36,15 +54,22 @@
 
             // Get webmention content and handle it
 
-            function webmentionContent($source, $target, $source_content, $source_mf2) {
+            function webmentionContent($source, $target, $source_content, $source_mf2)
+            {
                 if (!empty($this->arguments[0])) {
                     $object = \Idno\Common\Entity::getByID($this->arguments[0]);
+                    if (empty($object)) {
+                        $object = \Idno\Common\Entity::getBySlug($this->arguments[0]);
+                    }
                 }
-                if (empty($object)) return false;
+                if (empty($object)) {
+                    \Idno\Core\site()->logging->log("No object was found with ID {$this->arguments[0]}.", LOGLEVEL_ERROR);
+                    return false;
+                }
 
                 $return = true;
 
-                if ($object instanceof \Idno\Common\Entity) {
+                if ($object instanceof \Idno\Common\Entity && $source != $target && $source != $object->getObjectURL()) {
                     $return = $object->addWebmentions($source, $target, $source_content, $source_mf2);
                 }
 
@@ -53,9 +78,13 @@
 
             // Handle POST requests to the entity
 
-            function postContent() {
+            function postContent()
+            {
                 if (!empty($this->arguments[0])) {
                     $object = \Idno\Common\Entity::getByID($this->arguments[0]);
+                    if (empty($object)) {
+                        $object = \Idno\Common\Entity::getBySlug($this->arguments[0]);
+                    }
                 }
                 if (empty($object)) $this->forward(); // TODO: 404
                 if ($object->saveDataFromInput($this)) {
@@ -66,9 +95,13 @@
 
             // Handle DELETE requests to the entity
 
-            function deleteContent() {
+            function deleteContent()
+            {
                 if (!empty($this->arguments[0])) {
                     $object = \Idno\Common\Entity::getByID($this->arguments[0]);
+                    if (empty($object)) {
+                        $object = \Idno\Common\Entity::getBySlug($this->arguments[0]);
+                    }
                 }
                 if (empty($object)) $this->forward(); // TODO: 404
                 if ($object->delete()) {

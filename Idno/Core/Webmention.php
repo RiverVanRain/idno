@@ -16,8 +16,9 @@
             {
             }
 
-            function registerPages() {
-                \Idno\Core\site()->addPageHandler('/webmention/?','\Idno\Pages\Webmentions\Endpoint');
+            function registerPages()
+            {
+                \Idno\Core\site()->addPageHandler('/webmention/?', '\Idno\Pages\Webmentions\Endpoint');
             }
 
             /**
@@ -26,40 +27,39 @@
              * @param string $text The text to mine for links
              * @return int The number of pings that were sent out
              */
-            static function pingMentions($pageURL, $text) {
+            static function pingMentions($pageURL, $text)
+            {
                 // Load webmention-client
-                require_once \Idno\Core\site()->config()->path . '/external/mention-client/mention-client.php';
-                $client = new \MentionClient($pageURL, $text);
-                $client->debug = true;
-                return $client->sendSupportedMentions();
-            }
+                require_once \Idno\Core\site()->config()->path . '/external/mention-client-php/src/IndieWeb/MentionClient.php';
+                
+                
+                // Proxy connection string provided
+                $proxystring = false;
+                if (!empty(\Idno\Core\site()->config()->proxy_string)) {
+                    $proxystring = \Idno\Core\site()->config()->proxy_string;
+                }
+                
+                $client = new \IndieWeb\MentionClient($pageURL, $text, $proxystring);
 
-            /**
-             * Retrieve content for a given page
-             * @param $url
-             * @return mixed
-             */
-            static function getPageContent($url) {
-                $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_HEADER, 0);
-                curl_setopt($ch, CURLOPT_VERBOSE, 0);
-                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_USERAGENT, "Idno (webmentions) 0.1");
-                if ($content = curl_exec($ch)) {} else error_log(curl_error($ch));
-                $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
-                return ['content' => $content, 'response' => $http_status];
+                return $client->sendSupportedMentions();
             }
 
             /**
              * Parses a given set of HTML for Microformats 2 content
              * @param $content HTML to parse
+             * @param $url Optionally, the source URL of the content, so relative URLs can be parsed into absolute ones
              * @return array
              */
-            static function parseContent($content) {
-                $parser = new \mf2\Parser($content);
-                return $parser->parse();
+            static function parseContent($content, $url = null)
+            {
+                $parser = new \Mf2\Parser($content, $url);
+                try {
+                    $return = $parser->parse();
+                } catch (\Exception $e) {
+                    $return = false;
+                }
+
+                return $return;
             }
 
             /**
@@ -69,12 +69,18 @@
              * @param array $inreplyto
              * @return array
              */
-            static function addSyndicatedReplyTargets($url, $inreplyto = []) {
-                if ($content = self::getPageContent($url)) {
-                    if ($mf2 = self::parseContent($content['content'])) {
+            static function addSyndicatedReplyTargets($url, $inreplyto = [])
+            {
+                if (!is_array($inreplyto)) {
+                    $inreplyto = [$inreplyto];
+                }
+                if ($content = \Idno\Core\Webservice::get($url)) {
+                    if ($mf2 = self::parseContent($content['content'], $url)) {
+                        $mf2 = (array) $mf2;
+                        $mf2['rels'] = (array) $mf2['rels'];
                         if (!empty($mf2['rels']['syndication'])) {
                             if (is_array($mf2['rels']['syndication'])) {
-                                foreach($mf2['rels']['syndication'] as $syndication) {
+                                foreach ($mf2['rels']['syndication'] as $syndication) {
                                     if (!in_array($syndication, $inreplyto) && !empty($syndication)) {
                                         $inreplyto[] = $syndication;
                                     }
@@ -83,6 +89,7 @@
                         }
                     }
                 }
+
                 return $inreplyto;
             }
 

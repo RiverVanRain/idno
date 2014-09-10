@@ -16,6 +16,22 @@
                 return $body;
             }
 
+            function getURL() {
+                // If we have a URL override, use it
+                if (!empty($this->url)) {
+                    return $this->url;
+                }
+
+                if (!empty($this->canonical)) {
+                    return $this->canonical;
+                }
+                if (!($this->getSlug()) && ($this->getID())) {
+                    return \Idno\Core\site()->config()->url . 'bookmark/' . $this->getID() . '/' . $this->getPrettyURLTitle();
+                } else {
+                    return parent::getURL();
+                }
+            }
+
             /**
              * Like objects have type 'bookmark'
              * @return 'bookmark'
@@ -30,11 +46,11 @@
              * @return mixed
              */
             function getTitleFromURL($Url){
-                $str = @file_get_contents($Url);
+                $str = \Idno\Core\Webservice::file_get_contents($Url); //@file_get_contents($Url); 
                 if(strlen($str)>0){
                     preg_match("/\<title\>(.*)\<\/title\>/i",$str,$title);
                     return $title[1];
-                }
+                } 
                 return '';
             }
 
@@ -51,11 +67,20 @@
                 }
                 $body = \Idno\Core\site()->currentPage()->getInput('body');
                 $description = \Idno\Core\site()->currentPage()->getInput('description');
+                $tags = \Idno\Core\site()->currentPage()->getInput('tags');
+
+                if ($time = \Idno\Core\site()->currentPage()->getInput('created')) {
+                    if ($time = strtotime($time)) {
+                        $this->created = $time;
+                    }
+                }
+
                 $body = trim($body);
                 if(filter_var($body, FILTER_VALIDATE_URL)){
                 if (!empty($body)) {
                     $this->body = $body;
                     $this->description = $description;
+                    $this->tags = $tags;
                     if ($title = $this->getTitleFromURL($body)) {
                         $this->pageTitle = $title;
                     } else {
@@ -68,7 +93,6 @@
                         } // Add it to the Activity Streams feed
                         $result = \Idno\Core\Webmention::pingMentions($this->getURL(), \Idno\Core\site()->template()->parseURLs($this->body));
                         $result = \Idno\Core\Webmention::pingMentions($this->getURL(), \Idno\Core\site()->template()->parseURLs($this->description));
-                        \Idno\Core\site()->session()->addMessage('You starred the page!');
                         return true;
                     }
                 } else {

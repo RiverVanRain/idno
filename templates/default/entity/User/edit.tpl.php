@@ -1,4 +1,4 @@
-<form action="<?=$vars['user']->getURL()?>" method="post">
+<form action="<?=$vars['user']->getURL()?>" method="post" enctype="multipart/form-data">
 
     <div class="row beforecontent">
         <div class="span11 offset1">
@@ -20,9 +20,26 @@
                 </label>
             </p>
 
+            <label>
+                <div id="photo-preview"></div>
+                                    <span class="btn btn-primary btn-file">
+                                        <i class="icon-camera"></i> <span id="photo-filename">Select a user picture</span> <input type="file" name="avatar" id="photo"
+                                                                                                                           class="span9"
+                                                                                                                           accept="image/*;capture=camera"
+                                                                                                                           onchange="photoPreview(this)"/>
+
+                                    </span>
+            </label>
+
         </div>
 
         <div class="span4">
+            <p>
+                <label>
+                    Your name<br>
+                    <input type="text" name="name" value="<?=htmlspecialchars($vars['user']->getTitle())?>" class="span3">
+                </label>
+            </p>
             <p id="websitelist">
                     Your websites<br />
                     <small>Other places on the web where people can find you.</small>
@@ -51,10 +68,29 @@
             </p>
             <p>
                 <?= \Idno\Core\site()->actions()->signForm('/profile/' . $vars['user']->getHandle()) ?>
-                <input type="submit" class="btn btn-primary" value="Save" />
-                <input type="button" class="btn" value="Cancel" onclick="hideContentCreateForm();" />
+                <input type="button" class="btn btn-cancel" value="Cancel" onclick="hideContentCreateForm();" />
+                <input type="submit" class="btn btn-primary" value="Save Changes" />
             </p>
         </div>
 
     </div>
 </form>
+<script>
+    //if (typeof photoPreview !== function) {
+    function photoPreview(input) {
+
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#photo-preview').html('<img src="" id="photopreview" style="width: 200px">');
+                $('#photo-filename').html('Choose different user picture');
+                $('#photopreview').attr('src', e.target.result);
+                $('#photopreview').show();
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    //}
+</script>

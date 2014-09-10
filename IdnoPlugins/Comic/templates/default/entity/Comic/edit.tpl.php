@@ -1,8 +1,9 @@
+<?=$this->draw('entity/edit/header');?>
 <form action="<?=$vars['object']->getURL()?>" method="post" enctype="multipart/form-data">
 
     <div class="row">
 
-        <div class="span9 offset1">
+        <div class="span8 offset2 edit-pane">
 
             <p>
                 <?php
@@ -38,13 +39,16 @@
                     <textarea name="body" id="body" class="span9 bodyInput"><?=htmlspecialchars($vars['object']->body)?></textarea>
                 </label>
             </p>
+            <?php if (empty($vars['object']->_id)) echo $this->drawSyndication('article'); ?>
             <p>
                 <?= \Idno\Core\site()->actions()->signForm('/text/edit') ?>
                 <input type="submit" class="btn btn-primary" value="Save" />
                 <input type="button" class="btn" value="Cancel" onclick="hideContentCreateForm();" />
+                <?= $this->draw('content/access'); ?>
             </p>
 
         </div>
 
     </div>
 </form>
+<?=$this->draw('entity/edit/footer');?>

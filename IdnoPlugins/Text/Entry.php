@@ -15,11 +15,22 @@
             }
 
             function getURL() {
-                if (($this->getID())) {
+
+                // If we have a URL override, use it
+                if (!empty($this->url)) {
+                    return $this->url;
+                }
+
+                if (!empty($this->canonical)) {
+                    return $this->canonical;
+                }
+
+                if (!$this->getSlug() && ($this->getID())) {
                     return \Idno\Core\site()->config()->url . 'entry/' . $this->getID() . '/' . $this->getPrettyURLTitle();
                 } else {
                     return parent::getURL();
                 }
+
             }
 
             /**
@@ -39,16 +50,24 @@
                 }
                 $body = \Idno\Core\site()->currentPage()->getInput('body');
                 if (!empty($body)) {
+
                     $this->body = $body;
                     $this->title = \Idno\Core\site()->currentPage()->getInput('title');
+                    $this->tags = \Idno\Core\site()->currentPage()->getInput('tags');
                     $this->setAccess('PUBLIC');
+
+                    if ($time = \Idno\Core\site()->currentPage()->getInput('created')) {
+                        if ($time = strtotime($time)) {
+                            $this->created = $time;
+                        }
+                    }
+
                     if ($this->save()) {
                         if ($new) {
                             // Add it to the Activity Streams feed
                             $this->addToFeed();
                         }
-                        \Idno\Core\Webmention::pingMentions($this->getURL(), \Idno\Core\site()->template()->parseURLs($this->getDescription()));
-                        \Idno\Core\site()->session()->addMessage('Your entry was successfully saved.');
+                        \Idno\Core\Webmention::pingMentions($this->getURL(), \Idno\Core\site()->template()->parseURLs($this->getTitle() . ' ' . $this->getDescription()));
                         return true;
                     }
                 } else {
@@ -59,7 +78,7 @@
             }
 
             function deleteData() {
-                \Idno\Core\Webmention::pingMentions($this->getURL(), \Idno\Core\site()->template()->parseURLs($this->getDescription()));
+                \Idno\Core\Webmention::pingMentions($this->getURL(), \Idno\Core\site()->template()->parseURLs($this->getTitle() . ' ' . $this->getDescription()));
             }
 
         }

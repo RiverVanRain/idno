@@ -4,7 +4,8 @@
 
         class ContentType extends \Idno\Common\ContentType {
 
-            public $title = 'Checkin';
+            public $title = 'Check-in';
+            public $category_title = 'Check-ins';
             public $entity_class = 'IdnoPlugins\\Checkin\\Checkin';
 
         }

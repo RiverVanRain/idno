@@ -6,7 +6,7 @@
 
             function getContent() {
 
-                $this->gatekeeper();    // This functionality is for logged-in users only
+                $this->createGatekeeper();    // This functionality is for logged-in users only
 
                 // Are we loading an entity?
                 if (!empty($this->arguments)) {
@@ -19,7 +19,8 @@
                 $body = $t->__(array(
                     'object' => $object,
                     'url' => $this->getInput('url'),
-                    'body' => $this->getInput('body')
+                    'body' => $this->getInput('body'),
+                    'tags' => $this->getInput('tags')
                 ))->draw('entity/Status/edit');
 
                 if (empty($object)) {
@@ -36,7 +37,7 @@
             }
 
             function postContent() {
-                $this->gatekeeper();
+                $this->createGatekeeper();
 
                 $new = false;
                 if (!empty($this->arguments)) {
